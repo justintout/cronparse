@@ -1,0 +1,18 @@
+.vscode/
+.priv/
+
+# https://dart.dev/guides/libraries/private-files
+doc/api/
+build/
+.dart_tool/
+.packages
+pubspec.lock
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Mac
+.DS_Store
