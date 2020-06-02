@@ -4,28 +4,108 @@ import 'package:cronparse/cronparse.dart';
 import 'fixtures.dart';
 
 void main() {
-  group("CronParser constructor", () {
-    test('throws on invalid expressions', () {
-      final tests = regexTests.where((t) => t[1] == false);
-      for (final t in tests) {
-        final res = () => CronParser(t[0]);
-        expect(
-          res,
-          throwsArgumentError,
-          reason: "input: ${t[0]}, expected: ArgumentError"
-        );
-      }
+  group("Cron", () {
+    group("constructor", () {
+      test('throws on invalid expressions', () {
+        final tests = regexTests.where((t) => t[1] == false);
+        for (final t in tests) {
+          final res = () => Cron(t[0]);
+          expect(
+            res,
+            throwsArgumentError,
+            reason: "input: ${t[0]}, expected: ArgumentError"
+          );
+        }
+      });
+      test('returns a Cron from valid expressions', () {
+        final tests = regexTests.where((t) => t[1] == true);
+        for (final t in tests) {
+          print(t[0]);
+          expect(
+            Cron(t[0]), 
+            isA<Cron>(),
+            reason: "input: ${t[0]}, expected: Cron, got: ${Cron(t[0])}",
+          );
+        }
+      });
     });
-    test('returns a CronParser from valid expressions', () {
-      final tests = regexTests.where((t) => t[1] == true);
-      for (final t in tests) {
-        expect(
-          CronParser(t[0]), 
-          isA<CronParser>(),
-          reason: "input: ${t[0]}, expected: CronParser, got: ${CronParser(t[0])}",
-        );
-      }
+    group("matchers", () {
+      test("always matches all asterisks", () {
+        final expression = "* * * * *";
+        final cron = Cron(expression);
+        final time = DateTime.now();
+        final result = cron.matches(time);
+        expect(result, isTrue, reason: "expression: $expression, time: $time, got: $result, expected: true");
+      });
+      group("minute", (){
+        test('always matches *', () {
+          final cron = Cron("* 1 1 1 1");
+          expect(cron.minuteMatches(DateTime.now()), isTrue);
+        });
+        test("matches an exact value", () {
+          final tests = [
+            ['0 * * * *', "2020-02-03 08:00:49", isTrue],
+            ['0 * * * *', "2020-02-03 08:01:49", isFalse]
+          ];
+          for (final t in tests) {
+            final cron = Cron(t[0]);
+            final time = DateTime.parse(t[1]);
+            final result = cron.minuteMatches(time);
+            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+          }
+        });
+        test("matches range values", () {
+          final tests = [
+            ['5-9 * * * *', '2020-02-03 08:06:49', isTrue],
+            ['5-9 * * * *', '2020-02-03 08:15:49', isFalse],
+          ];
+          for (final t in tests) {
+            final cron = Cron(t[0]);
+            final time = DateTime.parse(t[1]);
+            final result = cron.minuteMatches(time);
+            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+          }
+        });
+        test("matches within a set of values", () {
+          final tests = [
+            ['1,2,3,4 * * * *', '2020-02-03 08:02:49', isTrue],
+            ['1,2,3,4 * * * *', '2020-02-03 08:05:49', isFalse],
+            ['1-5,20-30 * * * *', '2020-02-03 08:03:49', isTrue],
+            ['1-5,20-30 * * * *', '2020-02-03 08:25:49', isTrue],
+            ['1-5,20-30 * * * *', '2020-02-03 08:50:49', isFalse],
+            ['1,2,3,50-59 * * * *', '2020-02-03 08:03:49', isTrue],
+            ['1,2,3,50-59 * * * *', '2020-02-03 08:53:49', isTrue],
+            ['1,2,3,50-59 * * * *', '2020-02-03 08:12:49', isFalse],
+          ];
+          for (final t in tests) {
+            final cron = Cron(t[0]);
+            final time = DateTime.parse(t[1]);
+            final result = cron.minuteMatches(time);
+            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+          }
+        });
+        test("matches skip values", () {
+          final tests = [
+            ['*/15 * * * *', '2020-02-03 08:30:49', isTrue],
+            ['*/15 * * * *', '2020-02-03 08:25:49', isFalse],
+            ['10-30/2 * * * *', '2020-02-03 08:25:49', isFalse],
+            ['10-30/2 * * * *', '2020-02-03 08:22:49', isTrue],
+          ];
+          for (final t in tests) {
+            final cron = Cron(t[0]);
+            final time = DateTime.parse(t[1]);
+            final result = cron.minuteMatches(time);
+            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+          }
+        });
+      });
+      group("hour", (){});
+      group("day of month", (){});
+      group("month", (){});
+      group("day of week", (){});
     });
+    group("DateTime calculations", (){});
+    group("Duration calculations", (){});
   });
 }
 

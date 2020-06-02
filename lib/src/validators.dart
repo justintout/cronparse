@@ -1,14 +1,17 @@
-/// `validCronExpression` returns true if the given string is 
+/// `isValid` returns true if the given string is 
 /// a valid cron expression
 // TODO: support Jenkins "H"? 
-bool validCronExpression(String expr) {
+bool isValid(String expr) {
   if (expr.startsWith('@')) {
     return _nicknameValid(expr);
   }
   final parts = expr.split(' ');
-  if (parts.length != 5) {
-    return false;
+  if (parts.length != 5) return false;
+  for (final part in parts) {
+    if (part.contains(RegExp(r'^[0-9]+/'))) return false;
+    if (part.contains("/") && part.contains(",")) return false;
   }
+
   return _minuteValid(parts[0])
     && _hourValid(parts[1])
     && _dayOfMonthValid(parts[2])
@@ -17,8 +20,7 @@ bool validCronExpression(String expr) {
 }
 
 bool _nicknameValid(String expr) {
-  return expr == "@reboot" 
-    || expr == "@yearly"
+  return expr == "@yearly"
     || expr == "@annually"
     || expr == "@monthly" 
     || expr == "@weekly" 
