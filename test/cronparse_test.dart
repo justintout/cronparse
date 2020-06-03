@@ -104,8 +104,90 @@ void main() {
       group("month", (){});
       group("day of week", (){});
     });
-    group("DateTime calculations", (){});
-    group("Duration calculations", (){});
+    group("DateTime calculations", (){
+      test("nextRelativeTo returns the next matching time", () {
+        final tests = [
+          // simple tests
+          ["* * * * *", "2019-11-23 12:00:00", "2019-11-23 12:01:00"],
+          ["* * * * *", "2019-11-23 12:00:01", "2019-11-23 12:01:00"],
+          ["5 * * * *", "2019-11-23 12:00:01", "2019-11-23 12:05:00"],
+          ["0 13 * * *", "2019-11-23 12:00:01", "2019-11-23 13:00:00"],
+          // TODO: range tests
+          // TODO: set tests
+          // TODO: skip tests
+          ["*/5 * * * *", "2019-11-23 12:00:01", "2019-11-23 12:05:00"],
+        ];
+        for (final t in tests) {
+          final cron = Cron(t[0]);
+          final input = DateTime.parse(t[1]);
+          final expected = DateTime.parse(t[2]);
+          final result = cron.nextRelativeTo(input);
+          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+        }
+      });
+      test("previousRelativeTo returns the previous matching time", () {
+        final tests = [
+          // simple tests
+          ["* * * * *", "2019-11-23 12:00:00", "2019-11-23 11:59:00"],
+          ["* * * * *", "2019-11-23 12:00:01", "2019-11-23 11:59:00"],
+          ["5 * * * *", "2019-11-23 12:00:00", "2019-11-23 11:05:00"],
+          ["0 13 * * *", "2019-11-23 12:00:00", "2019-11-22 13:00:00"],
+          // TODO: range tests
+          // TODO: set tests
+          // TODO: skip tests
+          ["*/5 * * * *", "2019-11-23 12:00:01", "2019-11-23 11:55:00"],
+        ];
+        for (final t in tests) {
+          final cron = Cron(t[0]);
+          final input = DateTime.parse(t[1]);
+          final expected = DateTime.parse(t[2]);
+          final result = cron.previousRelativeTo(input);
+          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+        }
+      });
+    });
+    group("Duration calculations", (){
+      test("untilNextRelativeTo returns the duration to the next match", () {
+        final tests = [
+          // simple tests
+          ["* * * * *", "2019-11-23 12:00:00", Duration(minutes: 1)],
+          ["* * * * *", "2019-11-23 12:00:01", Duration(seconds: 59)],
+          ["5 * * * *", "2019-11-23 12:00:00", Duration(minutes: 5)],
+          ["0 13 * * *", "2019-11-23 12:00:00", Duration(hours: 1)],
+          // TODO: range tests
+          // TODO: set tests
+          // TODO: skip tests
+          ["*/5 * * * *", "2019-11-23 12:00:01", Duration(minutes: 4, seconds: 59)],
+        ];
+        for (final t in tests) {
+          final cron = Cron(t[0]);
+          final input = DateTime.parse(t[1]);
+          final expected = t[2];
+          final result = cron.untilNextRelativeTo(input);
+          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+        }
+      });
+      test("sincePreviousRelativeTo returns the duration since the previous match", () {
+        final tests = [
+          // simple tests
+          ["* * * * *", "2019-11-23 12:00:00", -Duration(minutes: 1)],
+          ["* * * * *", "2019-11-23 12:00:01", -Duration(minutes: 1, seconds: 1)],
+          ["5 * * * *", "2019-11-23 12:00:01", -Duration(minutes: 55, seconds: 1)],
+          ["0 13 * * *", "2019-11-23 12:00:01", -Duration(hours: 23, seconds: 1)],
+          // TODO: range tests
+          // TODO: set tests
+          // TODO: skip tests
+          ["*/5 * * * *", "2019-11-23 12:00:01", -Duration(minutes: 5, seconds: 1)],
+        ];
+        for (final t in tests) {
+          final cron = Cron(t[0]);
+          final input = DateTime.parse(t[1]);
+          final expected = t[2];
+          final result = cron.sincePreviousRelativeTo(input);
+          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+        }
+      });
+    });
   });
 }
 

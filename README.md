@@ -1,34 +1,32 @@
 # cronparse
 > Parse and calculate different times related to Unix cron expressions
 
-**Note: Not yet implemented. First implemented release will be `0.1.0`.**
-
-
 Parse Unix cron expressions and calculate things like:
 
-- whether the expression is valid
-- the next time the expression will run
-- the last time the expression would have run
-- the duration until the next time the expression will run
-- the duration since the last time the expression would have run
+- whether the expression is valid, as a `bool`
+- the next time the expression will run, as a `DateTime`
+- the last time the expression would have run, as a `DateTime`
+- the duration until the next time the expression will run, as a `Duration`
+- the duration since the last time the expression would have run, as a negative `Duration`
 
 ## Usage 
 
 ```dart
-import 'package:cronparse/cronparse.dart';
-
 void main() {
     // validate a cron expression
-    print("validCronExpression(54 2-3,4-9 */3 FEB MON-FRI)"); // true
+    final valid = isValid("54 2-3,4-9 */3 FEB MON-FRI");
+    print(valid); // true
 
     // calculate times based on a cron expression
-    final time = DateTime().parse("2019-11-23 18:22:00");
+    final time = DateTime.parse("2019-11-23 16:00:00");
 
-    final simpleParser = CronParser("0 22 * * *");
-    print(simpleParser.nextRelativeTo(time)); // "2020-11-23 22:00:00"
+    var cron = Cron("0 22 * * *");
+    print(cron.nextRelativeTo(time)); // "2019-11-23 22:00:00.000"
+    print(cron.untilNextRelativeTo(time) == Duration(hours: 6)); // true
 
-    final skipParser = CronParser("*/15 * * * *");
-    print(skipParser.untilNextRelativeTo(time)); // "0:08:00.000000"
+    cron = Cron("*/15 * * * *");
+    print(cron.previousRelativeTo(time)); // "2019-11-23 15:45:00.000"
+    print(cron.sincePreviousRelativeTo(time) == Duration(minutes: -15)); // true
 }
 ```
 

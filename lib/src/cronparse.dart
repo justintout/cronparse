@@ -262,9 +262,17 @@ class Cron {
 
   /// `nextRelativeTo` calculates the next [DateTime] 
   /// the expression is scheduled for, relative to 
-  /// the given time
+  /// the given time.
+  /// 
+  /// `nextRelativeTo` uses a naive strategy to find the next time by searching forward each minute 
+  /// until a match is found.  
   DateTime nextRelativeTo(DateTime time) {
-    throw UnimplementedError();
+    // round the given time to the next exact minute to start the search
+    time = time.add(Duration(minutes: 1) - Duration(seconds: time.second, milliseconds: time.millisecond, microseconds: time.microsecond));
+    while (!matches(time)) {
+      time = time.add(Duration(minutes: 1));
+    }
+    return time;
   }
 
   /// `previous` calculates the last [DateTime]
@@ -277,8 +285,16 @@ class Cron {
   /// `previousRelativeTo` calculates the last [DateTime]
   /// the expression would have been scheduled for, 
   /// relative to the given time
+  /// 
+  /// `previousRelativeTo` uses a naive strategy to find the next time by searching backward each minute 
+  /// until a match is found.  
   DateTime previousRelativeTo(DateTime time) {
-    throw UnimplementedError();
+    // round the given time to the previous exact minute to start the search
+    time = time.subtract(Duration(minutes: 1) + Duration(seconds: time.second, milliseconds: time.millisecond, microseconds: time.microsecond));
+    while (!matches(time)) {
+      time = time.subtract(Duration(minutes: 1));
+    }
+    return time;
   }
 
   /// `untilNext` returns the [Duration] until
@@ -292,7 +308,7 @@ class Cron {
   /// the expression's next scheduled time, relative
   /// to the given time
   Duration untilNextRelativeTo(DateTime time) {
-    throw UnimplementedError();
+    return nextRelativeTo(time).difference(time);
   }
 
   /// `sincePrevious` calculates the [Duration]
@@ -308,6 +324,6 @@ class Cron {
   /// would have been scheduled for, relative to
   /// the given time
   Duration sincePreviousRelativeTo(DateTime time) {
-    throw UnimplementedError();
+    return previousRelativeTo(time).difference(time);
   }
 }
