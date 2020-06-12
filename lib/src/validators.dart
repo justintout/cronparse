@@ -1,6 +1,6 @@
-/// `isValid` returns true if the given string is 
+/// `isValid` returns true if the given string is
 /// a valid cron expression
-// TODO: support Jenkins "H"? 
+// TODO: support Jenkins "H"?
 bool isValid(String expr) {
   if (expr.startsWith('@')) {
     return _nicknameValid(expr);
@@ -12,35 +12,33 @@ bool isValid(String expr) {
     if (part.contains("/") && part.contains(",")) return false;
   }
 
-  return _minuteValid(parts[0])
-    && _hourValid(parts[1])
-    && _dayOfMonthValid(parts[2])
-    && _monthValid(parts[3])
-    && _dayOfWeekValid(parts[4]);
+  return _minuteValid(parts[0]) &&
+      _hourValid(parts[1]) &&
+      _dayOfMonthValid(parts[2]) &&
+      _monthValid(parts[3]) &&
+      _dayOfWeekValid(parts[4]);
 }
 
 bool _nicknameValid(String expr) {
-  return expr == "@yearly"
-    || expr == "@annually"
-    || expr == "@monthly" 
-    || expr == "@weekly" 
-    || expr == "@daily"
-    || expr == "@midnight"
-    || expr == "@hourly";
+  return expr == "@yearly" ||
+      expr == "@annually" ||
+      expr == "@monthly" ||
+      expr == "@weekly" ||
+      expr == "@daily" ||
+      expr == "@midnight" ||
+      expr == "@hourly";
 }
 
 bool _minuteValid(String part) {
   const int min = 0;
   const int max = 59;
   return _isAsterisk(part) || _hasAllPartsWithin(part, min, max);
-
 }
 
 bool _hourValid(String part) {
   const int min = 0;
   const int max = 23;
   return _isAsterisk(part) || _hasAllPartsWithin(part, min, max);
-
 }
 
 // TODO: support "L", "?", "W"
@@ -53,13 +51,26 @@ bool _dayOfMonthValid(String part) {
 bool _monthValid(String part) {
   const int min = 1;
   const int max = 12;
-  return _isAsterisk(part) 
-    || _isMonthName(part)
-    || _hasAllPartsWithin(part, min, max);
+  return _isAsterisk(part) ||
+      _isMonthName(part) ||
+      _hasAllPartsWithin(part, min, max);
 }
 
 bool _isMonthName(String part) {
-  const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const months = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec'
+  ];
   return months.contains(part.toLowerCase());
 }
 
@@ -67,9 +78,9 @@ bool _isMonthName(String part) {
 bool _dayOfWeekValid(String part) {
   const int min = 0;
   const int max = 7;
-  return _isAsterisk(part) 
-    || _isDayName(part)
-    || _hasAllPartsWithin(part, min, max);
+  return _isAsterisk(part) ||
+      _isDayName(part) ||
+      _hasAllPartsWithin(part, min, max);
 }
 
 bool _isDayName(String part) {

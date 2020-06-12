@@ -193,7 +193,7 @@ class Cron {
   /// `monthMatches` returns true if the month field of the expression
   /// matches the month of the given time
   bool monthMatches(DateTime time) {
-    assert(!_dayOfWeekField.contains(new RegExp(r'a-zA-Z')));
+    assert(!_dayOfWeekField.contains(RegExp(r'a-zA-Z')));
 
     if (_monthField == '*') return true;
 
@@ -224,7 +224,7 @@ class Cron {
   /// `dayOfWeekMatches` returns true if the day of week field of the expression
   /// matches the day of week of the given time
   bool dayOfWeekMatches(DateTime time) {
-    assert(!_dayOfWeekField.contains(new RegExp(r'a-zA-Z')));
+    assert(!_dayOfWeekField.contains(RegExp(r'a-zA-Z')));
 
     if (_dayOfWeekField == '*') return true;    
 
