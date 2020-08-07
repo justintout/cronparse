@@ -246,9 +246,11 @@ class Cron {
         for (var i = bounds[0]; i <= bounds[1]; i++) {
           if (i == time.weekday || (i == 0 && time.weekday == 7)) return true;
         }
+      }else{
+        final v = int.parse(value);
+        if (v == time.weekday || (v == 0 && time.weekday == 7)) return true;
       }
-      final v = int.parse(value);
-      if (v == time.weekday || (v == 0 && time.weekday == 7)) return true;
+      
     }
     return false;
   }
