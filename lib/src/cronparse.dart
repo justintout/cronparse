@@ -98,7 +98,7 @@ class Cron {
     return minuteMatches(time) 
       && hourMatches(time)
       && monthMatches(time)
-      && (dayOfMonthMatches(time) || dayOfWeekMatches(time));
+      && (dayOfMonthMatches(time) && dayOfWeekMatches(time));
   }
 
   /// `minuteMatches` returns true if the minute field of the expression
