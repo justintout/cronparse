@@ -102,7 +102,45 @@ void main() {
       group("hour", (){});
       group("day of month", (){});
       group("month", (){});
-      group("day of week", (){});
+      group("day of week", (){
+        test('always matches *', () {
+          final cron = Cron("1 1 1 1 *");
+          expect(cron.dayOfWeekMatches(DateTime.now()), isTrue);
+        });
+        test("matches an exact value", () {
+          final tests = [
+            ['* * * * 6', '2019-11-23 05:00:00', isTrue],
+            ['* * * * 0', '2019-11-24 05:00:00', isTrue],
+            ['* * * * 7', '2019-11-24 05:00:00', isTrue],
+            ['* * * * 4', '2019-11-24 05:00:00', isFalse],
+          ];
+          for (final t in tests) {
+            final cron = Cron(t[0]);
+            final time = DateTime.parse(t[1]);
+            final result = cron.dayOfWeekMatches(time);
+            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+          }
+        });
+        test("matches range values", () {
+          final tests = [
+            ['* * * * 4-7', '2019-11-23 05:00:00', isTrue],
+            ['* * * * 1-3', '2019-11-23 05:00:00', isFalse],
+          ];
+          for (final t in tests) {
+            final cron = Cron(t[0]);
+            final time = DateTime.parse(t[1]);
+            final result = cron.dayOfWeekMatches(time);
+            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+          }
+        });
+        test("we pass a test for 'the bug'", () {
+          // https://crontab.guru/cron-bug.html
+          final cron = Cron('* * *,* * SUN');
+          final time = DateTime.parse('2019-11-23 05:00:00');
+          final result = cron.matches(time);
+          expect(result, true, reason: "expression: ${'* * *,* * SUN'}, time: ${'2019-11-23 05:00:00'}, got: $result, expected: ${true}");
+        });
+      });
     });
     group("DateTime calculations", (){
       test("nextRelativeTo returns the next matching time", () {
