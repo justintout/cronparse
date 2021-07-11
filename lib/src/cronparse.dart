@@ -51,7 +51,7 @@ class Cron {
 
     _monthField =
         field[3].contains("/") ? field[3].replaceFirst("*", "1-12") : field[3];
-    _monthField = _monthField!
+    _monthField = _monthField
         .toLowerCase()
         .replaceAll('jan', '1')
         .replaceAll('feb', '2')
@@ -68,7 +68,7 @@ class Cron {
 
     _dayOfWeekField =
         field[4].contains("/") ? field[4].replaceFirst("*", "0-7") : field[4];
-    _dayOfWeekField = _dayOfWeekField!
+    _dayOfWeekField = _dayOfWeekField
         .toLowerCase()
         .replaceAll('mon', '1')
         .replaceAll('tue', '2')
@@ -81,11 +81,11 @@ class Cron {
 
   final String expr;
   late String _parsedExpr;
-  String? _minuteField;
-  String? _hourField;
-  String? _dayOfMonthField;
-  String? _monthField;
-  String? _dayOfWeekField;
+  late String _minuteField;
+  late String _hourField;
+  late String _dayOfMonthField;
+  late String _monthField;
+  late String _dayOfWeekField;
 
   /// `matches` returns true if the full expression matches the given time;
   bool matches(DateTime time) {
@@ -100,8 +100,8 @@ class Cron {
   bool minuteMatches(DateTime time) {
     if (_minuteField == '*') return true;
 
-    if (_minuteField!.contains("/")) {
-      final s = _minuteField!.split("/");
+    if (_minuteField.contains("/")) {
+      final s = _minuteField.split("/");
       var skips = int.parse(s[1]);
       final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
       for (var i = bounds[0]; i <= bounds[1]; i += skips) {
@@ -109,9 +109,9 @@ class Cron {
       }
       return false;
     }
-    assert(!_minuteField!.contains("/"));
+    assert(!_minuteField.contains("/"));
 
-    final values = _minuteField!.split(',');
+    final values = _minuteField.split(',');
     for (final value in values) {
       if (value.contains("-")) {
         final bounds = value.split("-").map((v) => int.parse(v)).toList();
@@ -131,8 +131,8 @@ class Cron {
   bool hourMatches(DateTime time) {
     if (_hourField == '*') return true;
 
-    if (_hourField!.contains("/")) {
-      final s = _hourField!.split("/");
+    if (_hourField.contains("/")) {
+      final s = _hourField.split("/");
       var skips = int.parse(s[1]);
       final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
       for (var i = bounds[0]; i <= bounds[1]; i += skips) {
@@ -140,12 +140,12 @@ class Cron {
       }
       return false;
     }
-    assert(!_hourField!.contains("/"));
+    assert(!_hourField.contains("/"));
 
-    final values = _hourField!.split(',');
+    final values = _hourField.split(',');
     for (final value in values) {
       if (value.contains("-")) {
-        final bounds = _hourField!.split("-").map((v) => int.parse(v)).toList();
+        final bounds = _hourField.split("-").map((v) => int.parse(v)).toList();
         for (var i = bounds[0]; i <= bounds[1]; i++) {
           if (i == time.hour) return true;
         }
@@ -160,8 +160,8 @@ class Cron {
   bool dayOfMonthMatches(DateTime time) {
     if (_dayOfMonthField == '*') return true;
 
-    if (_dayOfMonthField!.contains("/")) {
-      final s = _dayOfWeekField!.split("/");
+    if (_dayOfMonthField.contains("/")) {
+      final s = _dayOfWeekField.split("/");
       var skips = int.parse(s[1]);
       final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
       for (var i = bounds[0]; i <= bounds[1]; i += skips) {
@@ -169,13 +169,13 @@ class Cron {
       }
       return false;
     }
-    assert(!_dayOfMonthField!.contains("/"));
+    assert(!_dayOfMonthField.contains("/"));
 
-    final values = _dayOfMonthField!.split(',');
+    final values = _dayOfMonthField.split(',');
     for (final value in values) {
       if (value.contains("-")) {
         final bounds =
-            _dayOfMonthField!.split("-").map((v) => int.parse(v)).toList();
+            _dayOfMonthField.split("-").map((v) => int.parse(v)).toList();
         for (var i = bounds[0]; i <= bounds[1]; i++) {
           if (i == time.day) return true;
         }
@@ -188,12 +188,12 @@ class Cron {
   /// `monthMatches` returns true if the month field of the expression
   /// matches the month of the given time
   bool monthMatches(DateTime time) {
-    assert(!_dayOfWeekField!.contains(RegExp(r'a-zA-Z')));
+    assert(!_dayOfWeekField.contains(RegExp(r'a-zA-Z')));
 
     if (_monthField == '*') return true;
 
-    if (_monthField!.contains("/")) {
-      final s = _minuteField!.split("/");
+    if (_monthField.contains("/")) {
+      final s = _minuteField.split("/");
       var skips = int.parse(s[1]);
       final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
       for (var i = bounds[0]; i <= bounds[1]; i += skips) {
@@ -201,12 +201,12 @@ class Cron {
       }
       return false;
     }
-    assert(!_monthField!.contains("/"));
+    assert(!_monthField.contains("/"));
 
-    final values = _monthField!.split(',');
+    final values = _monthField.split(',');
     for (final value in values) {
       if (value.contains("-")) {
-        final bounds = _monthField!.split("-").map((v) => int.parse(v)).toList();
+        final bounds = _monthField.split("-").map((v) => int.parse(v)).toList();
         for (var i = bounds[0]; i <= bounds[1]; i++) {
           if (i == time.month) return true;
         }
@@ -219,12 +219,12 @@ class Cron {
   /// `dayOfWeekMatches` returns true if the day of week field of the expression
   /// matches the day of week of the given time
   bool dayOfWeekMatches(DateTime time) {
-    assert(!_dayOfWeekField!.contains(RegExp(r'a-zA-Z')));
+    assert(!_dayOfWeekField.contains(RegExp(r'a-zA-Z')));
 
     if (_dayOfWeekField == '*') return true;
 
-    if (_dayOfWeekField!.contains("/")) {
-      final s = _dayOfWeekField!.split("/");
+    if (_dayOfWeekField.contains("/")) {
+      final s = _dayOfWeekField.split("/");
       var skips = int.parse(s[1]);
       final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
       for (var i = bounds[0]; i <= bounds[1]; i += skips) {
@@ -232,13 +232,13 @@ class Cron {
       }
       return false;
     }
-    assert(!_dayOfWeekField!.contains("/"));
+    assert(!_dayOfWeekField.contains("/"));
 
-    final values = _dayOfWeekField!.split(',');
+    final values = _dayOfWeekField.split(',');
     for (final value in values) {
       if (value.contains("-")) {
         final bounds =
-            _dayOfWeekField!.split("-").map((v) => int.parse(v)).toList();
+            _dayOfWeekField.split("-").map((v) => int.parse(v)).toList();
         for (var i = bounds[0]; i <= bounds[1]; i++) {
           if (i == time.weekday || (i == 0 && time.weekday == 7)) return true;
         }
