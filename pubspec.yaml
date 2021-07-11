@@ -1,6 +1,6 @@
 name: cronparse
 description: Parse and calculate different times related to Unix cron expressions
-version: 0.1.1
+version: 0.2.0
 homepage: https://github.com/justintout/cronparse
 
 dev_dependencies: 
