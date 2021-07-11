@@ -9,12 +9,9 @@ void main() {
       test('throws on invalid expressions', () {
         final tests = regexTests.where((t) => t[1] == false);
         for (final t in tests) {
-          final res = () => Cron(t[0]);
-          expect(
-            res,
-            throwsArgumentError,
-            reason: "input: ${t[0]}, expected: ArgumentError"
-          );
+          final res = () => Cron(t[0] as String);
+          expect(res, throwsArgumentError,
+              reason: "input: ${t[0]}, expected: ArgumentError");
         }
       });
       test('returns a Cron from valid expressions', () {
@@ -22,9 +19,10 @@ void main() {
         for (final t in tests) {
           print(t[0]);
           expect(
-            Cron(t[0]), 
+            Cron(t[0] as String),
             isA<Cron>(),
-            reason: "input: ${t[0]}, expected: Cron, got: ${Cron(t[0])}",
+            reason:
+                "input: ${t[0]}, expected: Cron, got: ${Cron(t[0] as String)}",
           );
         }
       });
@@ -35,9 +33,11 @@ void main() {
         final cron = Cron(expression);
         final time = DateTime.now();
         final result = cron.matches(time);
-        expect(result, isTrue, reason: "expression: $expression, time: $time, got: $result, expected: true");
+        expect(result, isTrue,
+            reason:
+                "expression: $expression, time: $time, got: $result, expected: true");
       });
-      group("minute", (){
+      group("minute", () {
         test('always matches *', () {
           final cron = Cron("* 1 1 1 1");
           expect(cron.minuteMatches(DateTime.now()), isTrue);
@@ -48,10 +48,12 @@ void main() {
             ['0 * * * *', "2020-02-03 08:01:49", isFalse]
           ];
           for (final t in tests) {
-            final cron = Cron(t[0]);
-            final time = DateTime.parse(t[1]);
+            final cron = Cron(t[0] as String);
+            final time = DateTime.parse(t[1] as String);
             final result = cron.minuteMatches(time);
-            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+            expect(result, t[2],
+                reason:
+                    "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
           }
         });
         test("matches range values", () {
@@ -60,10 +62,12 @@ void main() {
             ['5-9 * * * *', '2020-02-03 08:15:49', isFalse],
           ];
           for (final t in tests) {
-            final cron = Cron(t[0]);
-            final time = DateTime.parse(t[1]);
+            final cron = Cron(t[0] as String);
+            final time = DateTime.parse(t[1] as String);
             final result = cron.minuteMatches(time);
-            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+            expect(result, t[2],
+                reason:
+                    "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
           }
         });
         test("matches within a set of values", () {
@@ -78,10 +82,12 @@ void main() {
             ['1,2,3,50-59 * * * *', '2020-02-03 08:12:49', isFalse],
           ];
           for (final t in tests) {
-            final cron = Cron(t[0]);
-            final time = DateTime.parse(t[1]);
+            final cron = Cron(t[0] as String);
+            final time = DateTime.parse(t[1] as String);
             final result = cron.minuteMatches(time);
-            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+            expect(result, t[2],
+                reason:
+                    "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
           }
         });
         test("matches skip values", () {
@@ -92,17 +98,19 @@ void main() {
             ['10-30/2 * * * *', '2020-02-03 08:22:49', isTrue],
           ];
           for (final t in tests) {
-            final cron = Cron(t[0]);
-            final time = DateTime.parse(t[1]);
+            final cron = Cron(t[0] as String);
+            final time = DateTime.parse(t[1] as String);
             final result = cron.minuteMatches(time);
-            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+            expect(result, t[2],
+                reason:
+                    "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
           }
         });
       });
-      group("hour", (){});
-      group("day of month", (){});
-      group("month", (){});
-      group("day of week", (){
+      group("hour", () {});
+      group("day of month", () {});
+      group("month", () {});
+      group("day of week", () {
         test('always matches *', () {
           final cron = Cron("1 1 1 1 *");
           expect(cron.dayOfWeekMatches(DateTime.now()), isTrue);
@@ -115,10 +123,12 @@ void main() {
             ['* * * * 4', '2019-11-24 05:00:00', isFalse],
           ];
           for (final t in tests) {
-            final cron = Cron(t[0]);
-            final time = DateTime.parse(t[1]);
+            final cron = Cron(t[0] as String);
+            final time = DateTime.parse(t[1] as String);
             final result = cron.dayOfWeekMatches(time);
-            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+            expect(result, t[2],
+                reason:
+                    "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
           }
         });
         test("matches range values", () {
@@ -127,10 +137,12 @@ void main() {
             ['* * * * 1-3', '2019-11-23 05:00:00', isFalse],
           ];
           for (final t in tests) {
-            final cron = Cron(t[0]);
-            final time = DateTime.parse(t[1]);
+            final cron = Cron(t[0] as String);
+            final time = DateTime.parse(t[1] as String);
             final result = cron.dayOfWeekMatches(time);
-            expect(result, t[2], reason: "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
+            expect(result, t[2],
+                reason:
+                    "expression: ${t[0]}, time: ${t[1]}, got: $result, expected: ${t[2] == isTrue ? true : false}");
           }
         });
         test("we pass a test for 'the bug'", () {
@@ -138,11 +150,13 @@ void main() {
           final cron = Cron('* * *,* * SUN');
           final time = DateTime.parse('2019-11-23 05:00:00');
           final result = cron.matches(time);
-          expect(result, true, reason: "expression: ${'* * *,* * SUN'}, time: ${'2019-11-23 05:00:00'}, got: $result, expected: ${true}");
+          expect(result, true,
+              reason:
+                  "expression: ${'* * *,* * SUN'}, time: ${'2019-11-23 05:00:00'}, got: $result, expected: ${true}");
         });
       });
     });
-    group("DateTime calculations", (){
+    group("DateTime calculations", () {
       test("nextRelativeTo returns the next matching time", () {
         final tests = [
           // simple tests
@@ -160,7 +174,8 @@ void main() {
           final input = DateTime.parse(t[1]);
           final expected = DateTime.parse(t[2]);
           final result = cron.nextRelativeTo(input);
-          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+          expect(result, expected,
+              reason: "expression: ${t[0]}, got: $result, expected: $expected");
         }
       });
       test("previousRelativeTo returns the previous matching time", () {
@@ -180,11 +195,12 @@ void main() {
           final input = DateTime.parse(t[1]);
           final expected = DateTime.parse(t[2]);
           final result = cron.previousRelativeTo(input);
-          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+          expect(result, expected,
+              reason: "expression: ${t[0]}, got: $result, expected: $expected");
         }
       });
     });
-    group("Duration calculations", (){
+    group("Duration calculations", () {
       test("untilNextRelativeTo returns the duration to the next match", () {
         final tests = [
           // simple tests
@@ -195,37 +211,60 @@ void main() {
           // TODO: range tests
           // TODO: set tests
           // TODO: skip tests
-          ["*/5 * * * *", "2019-11-23 12:00:01", Duration(minutes: 4, seconds: 59)],
+          [
+            "*/5 * * * *",
+            "2019-11-23 12:00:01",
+            Duration(minutes: 4, seconds: 59)
+          ],
         ];
         for (final t in tests) {
-          final cron = Cron(t[0]);
-          final input = DateTime.parse(t[1]);
+          final cron = Cron(t[0] as String);
+          final input = DateTime.parse(t[1] as String);
           final expected = t[2];
           final result = cron.untilNextRelativeTo(input);
-          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+          expect(result, expected,
+              reason: "expression: ${t[0]}, got: $result, expected: $expected");
         }
       });
-      test("sincePreviousRelativeTo returns the duration since the previous match", () {
+      test(
+          "sincePreviousRelativeTo returns the duration since the previous match",
+          () {
         final tests = [
           // simple tests
           ["* * * * *", "2019-11-23 12:00:00", -Duration(minutes: 1)],
-          ["* * * * *", "2019-11-23 12:00:01", -Duration(minutes: 1, seconds: 1)],
-          ["5 * * * *", "2019-11-23 12:00:01", -Duration(minutes: 55, seconds: 1)],
-          ["0 13 * * *", "2019-11-23 12:00:01", -Duration(hours: 23, seconds: 1)],
+          [
+            "* * * * *",
+            "2019-11-23 12:00:01",
+            -Duration(minutes: 1, seconds: 1)
+          ],
+          [
+            "5 * * * *",
+            "2019-11-23 12:00:01",
+            -Duration(minutes: 55, seconds: 1)
+          ],
+          [
+            "0 13 * * *",
+            "2019-11-23 12:00:01",
+            -Duration(hours: 23, seconds: 1)
+          ],
           // TODO: range tests
           // TODO: set tests
           // TODO: skip tests
-          ["*/5 * * * *", "2019-11-23 12:00:01", -Duration(minutes: 5, seconds: 1)],
+          [
+            "*/5 * * * *",
+            "2019-11-23 12:00:01",
+            -Duration(minutes: 5, seconds: 1)
+          ],
         ];
         for (final t in tests) {
-          final cron = Cron(t[0]);
-          final input = DateTime.parse(t[1]);
+          final cron = Cron(t[0] as String);
+          final input = DateTime.parse(t[1] as String);
           final expected = t[2];
           final result = cron.sincePreviousRelativeTo(input);
-          expect(result, expected, reason: "expression: ${t[0]}, got: $result, expected: $expected");
+          expect(result, expected,
+              reason: "expression: ${t[0]}, got: $result, expected: $expected");
         }
       });
     });
   });
 }
-
