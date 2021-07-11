@@ -80,12 +80,12 @@ class Cron {
   }
 
   final String expr;
-  String _parsedExpr;
-  String _minuteField;
-  String _hourField;
-  String _dayOfMonthField;
-  String _monthField;
-  String _dayOfWeekField;
+  late String _parsedExpr;
+  late String _minuteField;
+  late String _hourField;
+  late String _dayOfMonthField;
+  late String _monthField;
+  late String _dayOfWeekField;
 
   /// `matches` returns true if the full expression matches the given time;
   bool matches(DateTime time) {

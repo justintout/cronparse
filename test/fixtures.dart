@@ -145,6 +145,3 @@ const regexTests = [
   ['@asdf', false],
   ['@ ', false],
 ];
-
-
-
