@@ -34,6 +34,8 @@ class Cron {
         case "@midnight":
           _parsedExpr = "0 23 * * *";
           break;
+        default:
+          _parsedExpr = expr;
       }
     } else {
       _parsedExpr = expr;
@@ -49,9 +51,9 @@ class Cron {
     _dayOfMonthField =
         field[2].contains("/") ? field[2].replaceFirst("*", "1-31") : field[2];
 
-    _monthField =
+    final monthField =
         field[3].contains("/") ? field[3].replaceFirst("*", "1-12") : field[3];
-    _monthField = _monthField
+    _monthField = monthField
         .toLowerCase()
         .replaceAll('jan', '1')
         .replaceAll('feb', '2')
@@ -66,9 +68,9 @@ class Cron {
         .replaceAll('nov', '11')
         .replaceAll('dec', '12');
 
-    _dayOfWeekField =
+    final dayOfWeekField =
         field[4].contains("/") ? field[4].replaceFirst("*", "0-7") : field[4];
-    _dayOfWeekField = _dayOfWeekField
+    _dayOfWeekField = dayOfWeekField
         .toLowerCase()
         .replaceAll('mon', '1')
         .replaceAll('tue', '2')
@@ -80,172 +82,91 @@ class Cron {
   }
 
   final String expr;
-  String _parsedExpr;
-  String _minuteField;
-  String _hourField;
-  String _dayOfMonthField;
-  String _monthField;
-  String _dayOfWeekField;
+  late final String _parsedExpr;
+  late final String _minuteField;
+  late final String _hourField;
+  late final String _dayOfMonthField;
+  late final String _monthField;
+  late final String _dayOfWeekField;
 
   /// `matches` returns true if the full expression matches the given time;
   bool matches(DateTime time) {
-    return minuteMatches(time) &&
-        hourMatches(time) &&
-        monthMatches(time) &&
-        (dayOfMonthMatches(time) && dayOfWeekMatches(time));
+    if (!minuteMatches(time) || !hourMatches(time) || !monthMatches(time)) {
+      return false;
+    }
+    // POSIX cron day rule: when both the day-of-month and the day-of-week
+    // fields are restricted (neither is `*`), a time matches if EITHER field
+    // matches. When only one of them is restricted, only that field applies.
+    final domRestricted = _dayOfMonthField != '*';
+    final dowRestricted = _dayOfWeekField != '*';
+    if (domRestricted && dowRestricted) {
+      return dayOfMonthMatches(time) || dayOfWeekMatches(time);
+    }
+    return dayOfMonthMatches(time) && dayOfWeekMatches(time);
   }
 
   /// `minuteMatches` returns true if the minute field of the expression
   /// matches the minute of the given time
   bool minuteMatches(DateTime time) {
-    if (_minuteField == '*') return true;
-
-    if (_minuteField.contains("/")) {
-      final s = _minuteField.split("/");
-      var skips = int.parse(s[1]);
-      final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
-      for (var i = bounds[0]; i <= bounds[1]; i += skips) {
-        if (i == time.minute) return true;
-      }
-      return false;
-    }
-    assert(!_minuteField.contains("/"));
-
-    final values = _minuteField.split(',');
-    for (final value in values) {
-      if (value.contains("-")) {
-        final bounds = value.split("-").map((v) => int.parse(v)).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i++) {
-          if (i == time.minute) return true;
-        }
-        continue;
-      }
-      assert(!value.contains("-"));
-      if (int.parse(value) == time.minute) return true;
-    }
-    return false;
+    return _fieldMatches(_minuteField, time.minute);
   }
 
   /// `hourMatches` returns true if the hour field of the expression
   /// matches the hour of the given time
   bool hourMatches(DateTime time) {
-    if (_hourField == '*') return true;
-
-    if (_hourField.contains("/")) {
-      final s = _hourField.split("/");
-      var skips = int.parse(s[1]);
-      final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
-      for (var i = bounds[0]; i <= bounds[1]; i += skips) {
-        if (i == time.hour) return true;
-      }
-      return false;
-    }
-    assert(!_hourField.contains("/"));
-
-    final values = _hourField.split(',');
-    for (final value in values) {
-      if (value.contains("-")) {
-        final bounds = _hourField.split("-").map((v) => int.parse(v)).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i++) {
-          if (i == time.hour) return true;
-        }
-      }
-      if (int.parse(value) == time.hour) return true;
-    }
-    return false;
+    return _fieldMatches(_hourField, time.hour);
   }
 
-  /// `dayOfMonthMatches` returns true if the day of month field of the expression
-  /// matches the day of month of the given time
+  /// `dayOfMonthMatches` returns true if the day of month field of the
+  /// expression matches the day of month of the given time
   bool dayOfMonthMatches(DateTime time) {
-    if (_dayOfMonthField == '*') return true;
-
-    if (_dayOfMonthField.contains("/")) {
-      final s = _dayOfWeekField.split("/");
-      var skips = int.parse(s[1]);
-      final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
-      for (var i = bounds[0]; i <= bounds[1]; i += skips) {
-        if (i == time.day) return true;
-      }
-      return false;
-    }
-    assert(!_dayOfMonthField.contains("/"));
-
-    final values = _dayOfMonthField.split(',');
-    for (final value in values) {
-      if (value.contains("-")) {
-        final bounds =
-            _dayOfMonthField.split("-").map((v) => int.parse(v)).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i++) {
-          if (i == time.day) return true;
-        }
-      }
-      if (int.parse(value) == time.day) return true;
-    }
-    return false;
+    return _fieldMatches(_dayOfMonthField, time.day);
   }
 
   /// `monthMatches` returns true if the month field of the expression
   /// matches the month of the given time
   bool monthMatches(DateTime time) {
-    assert(!_dayOfWeekField.contains(RegExp(r'a-zA-Z')));
-
-    if (_monthField == '*') return true;
-
-    if (_monthField.contains("/")) {
-      final s = _minuteField.split("/");
-      var skips = int.parse(s[1]);
-      final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
-      for (var i = bounds[0]; i <= bounds[1]; i += skips) {
-        if (i == time.month) return true;
-      }
-      return false;
-    }
-    assert(!_monthField.contains("/"));
-
-    final values = _monthField.split(',');
-    for (final value in values) {
-      if (value.contains("-")) {
-        final bounds = _monthField.split("-").map((v) => int.parse(v)).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i++) {
-          if (i == time.month) return true;
-        }
-      }
-      if (int.parse(value) == time.month) return true;
-    }
-    return false;
+    return _fieldMatches(_monthField, time.month);
   }
 
   /// `dayOfWeekMatches` returns true if the day of week field of the expression
-  /// matches the day of week of the given time
+  /// matches the day of week of the given time.
+  ///
+  /// Both 0 and 7 represent Sunday. [DateTime.weekday] uses 7 for Sunday, so
+  /// a cron value of 0 is treated as matching a weekday of 7.
   bool dayOfWeekMatches(DateTime time) {
-    assert(!_dayOfWeekField.contains(RegExp(r'a-zA-Z')));
+    return _fieldMatches(_dayOfWeekField, time.weekday, sundayAlias: true);
+  }
 
-    if (_dayOfWeekField == '*') return true;
+  /// `_fieldMatches` evaluates a single cron field against an integer [value].
+  ///
+  /// It handles the shared grammar for every field: asterisk, skips
+  /// (`*/n`, `a-b/n`), exact values, ranges (`a-b`), and comma-separated sets
+  /// of any of those. When [sundayAlias] is set (day-of-week), a field value of
+  /// 0 also matches a [value] of 7 so that both 0 and 7 mean Sunday.
+  bool _fieldMatches(String field, int value, {bool sundayAlias = false}) {
+    if (field == '*') return true;
 
-    if (_dayOfWeekField.contains("/")) {
-      final s = _dayOfWeekField.split("/");
-      var skips = int.parse(s[1]);
-      final bounds = s[0].split("-").map((v) => int.parse(v)).toList();
-      for (var i = bounds[0]; i <= bounds[1]; i += skips) {
-        if (i == time.weekday || (i == 0 && time.weekday == 7)) return true;
-      }
-      return false;
-    }
-    assert(!_dayOfWeekField.contains("/"));
+    bool hits(int i) => i == value || (sundayAlias && i == 0 && value == 7);
 
-    final values = _dayOfWeekField.split(',');
-    for (final value in values) {
-      if (value.contains("-")) {
-        final bounds =
-            _dayOfWeekField.split("-").map((v) => int.parse(v)).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i++) {
-          if (i == time.weekday || (i == 0 && time.weekday == 7)) return true;
+    for (final part in field.split(',')) {
+      if (part.contains('/')) {
+        final s = part.split('/');
+        final skips = int.parse(s[1]);
+        final bounds = s[0].split('-').map(int.parse).toList();
+        for (var i = bounds[0]; i <= bounds[1]; i += skips) {
+          if (hits(i)) return true;
         }
-      } else {
-        final v = int.parse(value);
-        if (v == time.weekday || (v == 0 && time.weekday == 7)) return true;
+        continue;
       }
+      if (part.contains('-')) {
+        final bounds = part.split('-').map(int.parse).toList();
+        for (var i = bounds[0]; i <= bounds[1]; i++) {
+          if (hits(i)) return true;
+        }
+        continue;
+      }
+      if (hits(int.parse(part))) return true;
     }
     return false;
   }
@@ -261,8 +182,8 @@ class Cron {
   /// the expression is scheduled for, relative to
   /// the given time.
   ///
-  /// `nextRelativeTo` uses a naive strategy to find the next time by searching forward each minute
-  /// until a match is found.
+  /// `nextRelativeTo` uses a naive strategy to find the next time by
+  /// searching forward each minute until a match is found.
   DateTime nextRelativeTo(DateTime time) {
     // round the given time to the next exact minute to start the search
     time = time.add(Duration(minutes: 1) -
@@ -287,8 +208,8 @@ class Cron {
   /// the expression would have been scheduled for,
   /// relative to the given time
   ///
-  /// `previousRelativeTo` uses a naive strategy to find the next time by searching backward each minute
-  /// until a match is found.
+  /// `previousRelativeTo` uses a naive strategy to find the previous time by
+  /// searching backward each minute until a match is found.
   DateTime previousRelativeTo(DateTime time) {
     // round the given time to the previous exact minute to start the search
     time = time.subtract(Duration(minutes: 1) +

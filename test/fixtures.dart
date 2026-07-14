@@ -1,4 +1,4 @@
-const regexTests = [
+const List<List<Object>> regexTests = [
   ['asdf', false],
   ['***** ****** ******** **** ***', false],
   ['', false],
@@ -145,6 +145,3 @@ const regexTests = [
   ['@asdf', false],
   ['@ ', false],
 ];
-
-
-
