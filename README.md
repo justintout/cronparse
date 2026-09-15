@@ -44,7 +44,7 @@ void main() {
         - range of values without skips (`5-9`): iterate through the range, starting at the lower bound and ending at the higher bound, incrementing by 1. if any of these match, the value matches 
         - range of values with skip (`20-30/2`): iterate through the range, starting at the lower bound and ending at the higher bound, incrementing by the skip value. if any of these match, the value matches.
         - set of values or ranges (`1,2,3`, `5-10,45-50`): test each value in the set using the above strategy. if any of the member values match, the value matches. 
-- iff all tokens match, the expression matches 
+- the expression matches when all five tokens match, with one exception. when both day of month and day of week are restricted (neither is `*`), the expression matches if either of the two matches. this is the rule cron itself uses, so `0 0 13 * 5` runs on the 13th of the month and on every Friday
 
 ### `@reboot`
 
