@@ -12,6 +12,10 @@
 * Fix the "the bug" day-of-week test, which used a malformed expression. (#8)
 * Run `dart format` across the repository (80-column default). (#7)
 
+Thanks to [@nilsreichardt](https://github.com/nilsreichardt), who filed #5–#8 and
+worked out that day-of-month matching was reading the day-of-week field. That
+diagnosis is what #5, #3, and #4 were all symptoms of.
+
 ## [0.1.1] - 2020-06-12
 * Fix pub.dev health suggestions
 
