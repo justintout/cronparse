@@ -32,7 +32,7 @@ class Cron {
           _parsedExpr = "0 * * * *";
           break;
         case "@midnight":
-          _parsedExpr = "0 23 * * *";
+          _parsedExpr = "0 0 * * *";
           break;
         default:
           _parsedExpr = expr;
