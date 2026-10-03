@@ -364,6 +364,25 @@ void main() {
               reason: nickname);
         });
       });
+
+      // https://github.com/justintout/cronparse/issues/13
+      // Searching for a day that never occurs used to loop forever.
+      test("#13: rejects a day of month that never occurs in its months", () {
+        for (final expr in [
+          '0 0 30 2 *',
+          '0 0 31 2 *',
+          '0 0 31 4 *',
+          '0 0 31 2,4,6 *',
+          '0 0 31 apr *',
+        ]) {
+          expect(() => Cron(expr), throwsArgumentError, reason: expr);
+        }
+        final current = DateTime.parse('2021-07-11 13:00:01');
+        expect(Cron('0 0 29 2 *').nextRelativeTo(current),
+            DateTime.parse('2024-02-29 00:00:00'));
+        expect(Cron('0 0 30 2 MON').nextRelativeTo(current),
+            DateTime.parse('2022-02-07 00:00:00'));
+      });
     });
   });
 }
