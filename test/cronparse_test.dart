@@ -162,6 +162,26 @@ void main() {
                   "expression: $expression, time: $timeString, got: $result, expected: true");
         });
       });
+      test("Sunday is 0 and 7, so `sun` can start or end a range", () {
+        final sunday = DateTime.parse('2019-11-24 05:00:00');
+        final saturday = DateTime.parse('2019-11-23 05:00:00');
+        expect(Cron('* * * * sun-sat').dayOfWeekMatches(sunday), isTrue);
+        expect(Cron('* * * * fri-sun').dayOfWeekMatches(sunday), isTrue);
+        expect(Cron('* * * * fri-sun').dayOfWeekMatches(saturday), isTrue);
+        expect(Cron('* * * * sun').dayOfWeekMatches(saturday), isFalse);
+        expect(Cron('* * * * sun-sun').dayOfWeekMatches(saturday), isFalse);
+      });
+      test("a day field starting with `*` combines with AND", () {
+        // Vixie cron treats `*/2` as unrestricted for the day rule, so the
+        // 13th must also be an even weekday.
+        final cron = Cron('0 0 13 * */2');
+        // 2021-11-14 is a Sunday, not the 13th.
+        expect(cron.matches(DateTime.parse('2021-11-14 00:00:00')), isFalse);
+        // 2022-04-13 is a Wednesday, an odd weekday.
+        expect(cron.matches(DateTime.parse('2022-04-13 00:00:00')), isFalse);
+        // 2021-07-13 is a Tuesday, an even weekday.
+        expect(cron.matches(DateTime.parse('2021-07-13 00:00:00')), isTrue);
+      });
     });
     group("DateTime calculations", () {
       test("nextRelativeTo returns the next matching time", () {

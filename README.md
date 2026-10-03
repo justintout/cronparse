@@ -35,16 +35,16 @@ void main() {
 ### High-level explanation on matching 
 
 - if the expression is a predefined nickname, translate it to the relevant actual expression. note: this library does not parse the `@reboot` nickname.
-- tokenize the expression to each part (minute, hour, day of month, month, day of week)
+- tokenize the expression to each part (minute, hour, day of month, month, day of week). parts are separated by any run of spaces or tabs
 - test each of these tokens to match
     - token values can be in a few forms: 
         - an asterisk (`*`): this always matches
         - an asterisk with skips (`*/15`): iterate through the valid range for the field, incrementing by the skip. if any of these match, the expression matches. 
-        - exact value (`48`, `feb`, `WED`): match these exactly 
+        - exact value (`48`, `feb`, `WED`): match these exactly. month and day names are case-insensitive and work anywhere a number does, including ranges (`jan-mar`, `MON-FRI`). Sunday is both `0` and `7`, so `sun` starts a range as 0 (`sun-sat`) and ends one as 7 (`fri-sun`) 
         - range of values without skips (`5-9`): iterate through the range, starting at the lower bound and ending at the higher bound, incrementing by 1. if any of these match, the value matches 
         - range of values with skip (`20-30/2`): iterate through the range, starting at the lower bound and ending at the higher bound, incrementing by the skip value. if any of these match, the value matches.
-        - set of values or ranges (`1,2,3`, `5-10,45-50`): test each value in the set using the above strategy. if any of the member values match, the value matches. 
-- the expression matches when all five tokens match, with one exception. when both day of month and day of week are restricted (neither is `*`), the expression matches if either of the two matches. this is the rule cron itself uses, so `0 0 13 * 5` runs on the 13th of the month and on every Friday
+        - set of values or ranges (`1,2,3`, `5-10,45-50`, `1-10/2,20-30/5`): test each value in the set using the above strategy. if any of the member values match, the value matches. 
+- the expression matches when all five tokens match, with one exception. when both day of month and day of week are restricted (neither starts with `*`), the expression matches if either of the two matches. this is the rule cron itself uses, so `0 0 13 * 5` runs on the 13th of the month and on every Friday. as in cron, a field like `*/2` starts with `*` and so does not count as restricted: `0 0 13 * */2` runs only on a 13th that falls on an even weekday
 
 ### `@reboot`
 
