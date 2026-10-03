@@ -1,5 +1,4 @@
 import './fields.dart';
-import './validators.dart';
 
 /// [Cron] is an object exposing various methods to
 /// calculate [DateTime]s and [Duration]s from a given cron expression.
@@ -8,104 +7,54 @@ class Cron {
     if (expr == "@reboot") {
       throw ArgumentError('nickname expression "@reboot" is not supported');
     }
-    if (!isValid(expr)) {
+    final fields = parseFields(expr);
+    if (fields == null) {
       throw ArgumentError('invalid cron expression: "$expr"');
     }
-
-    if (expr.startsWith("@")) {
-      switch (expr) {
-        case "@yearly":
-          _parsedExpr = "0 0 1 1 *";
-          break;
-        case "@annually":
-          _parsedExpr = "0 0 1 1 *";
-          break;
-        case "@monthly":
-          _parsedExpr = "0 0 1 * *";
-          break;
-        case "@weekly":
-          _parsedExpr = "0 0 * * 0";
-          break;
-        case "@daily":
-          _parsedExpr = "0 0 * * *";
-          break;
-        case "@hourly":
-          _parsedExpr = "0 * * * *";
-          break;
-        case "@midnight":
-          _parsedExpr = "0 0 * * *";
-          break;
-        default:
-          _parsedExpr = expr;
-      }
-    } else {
-      _parsedExpr = expr;
-    }
-
-    final field = normalizeFields(_parsedExpr.split(" "));
-    _minuteField = field[0];
-    _hourField = field[1];
-    _dayOfMonthField = field[2];
-    _monthField = field[3];
-    _dayOfWeekField = field[4];
+    _fields = fields;
   }
 
   final String expr;
-  late final String _parsedExpr;
-  late final String _minuteField;
-  late final String _hourField;
-  late final String _dayOfMonthField;
-  late final String _monthField;
-  late final String _dayOfWeekField;
+  late final CronFields _fields;
 
   /// `matches` returns true if the full expression matches the given time;
   bool matches(DateTime time) {
     if (!minuteMatches(time) || !hourMatches(time) || !monthMatches(time)) {
       return false;
     }
-    // POSIX cron day rule: when both the day-of-month and the day-of-week
-    // fields are restricted (neither is `*`), a time matches if EITHER field
-    // matches. When only one of them is restricted, only that field applies.
-    final domRestricted = _dayOfMonthField != '*';
-    final dowRestricted = _dayOfWeekField != '*';
-    if (domRestricted && dowRestricted) {
-      return dayOfMonthMatches(time) || dayOfWeekMatches(time);
+    // Vixie cron day rule: when either day field starts with `*`, a time must
+    // match both. Otherwise both are restricted, and a time matches if EITHER
+    // field matches.
+    if (_fields.dayOfMonthStar || _fields.dayOfWeekStar) {
+      return dayOfMonthMatches(time) && dayOfWeekMatches(time);
     }
-    return dayOfMonthMatches(time) && dayOfWeekMatches(time);
+    return dayOfMonthMatches(time) || dayOfWeekMatches(time);
   }
 
   /// `minuteMatches` returns true if the minute field of the expression
   /// matches the minute of the given time
-  bool minuteMatches(DateTime time) {
-    return fieldMatches(_minuteField, time.minute);
-  }
+  bool minuteMatches(DateTime time) => _fields.minutes.contains(time.minute);
 
   /// `hourMatches` returns true if the hour field of the expression
   /// matches the hour of the given time
-  bool hourMatches(DateTime time) {
-    return fieldMatches(_hourField, time.hour);
-  }
+  bool hourMatches(DateTime time) => _fields.hours.contains(time.hour);
 
   /// `dayOfMonthMatches` returns true if the day of month field of the
   /// expression matches the day of month of the given time
-  bool dayOfMonthMatches(DateTime time) {
-    return fieldMatches(_dayOfMonthField, time.day);
-  }
+  bool dayOfMonthMatches(DateTime time) =>
+      _fields.daysOfMonth.contains(time.day);
 
   /// `monthMatches` returns true if the month field of the expression
   /// matches the month of the given time
-  bool monthMatches(DateTime time) {
-    return fieldMatches(_monthField, time.month);
-  }
+  bool monthMatches(DateTime time) => _fields.months.contains(time.month);
 
   /// `dayOfWeekMatches` returns true if the day of week field of the expression
   /// matches the day of week of the given time.
   ///
   /// Both 0 and 7 represent Sunday. [DateTime.weekday] uses 7 for Sunday, so
-  /// a cron value of 0 is treated as matching a weekday of 7.
-  bool dayOfWeekMatches(DateTime time) {
-    return fieldMatches(_dayOfWeekField, time.weekday, sundayAlias: true);
-  }
+  /// it is reduced modulo 7 to match the parsed field.
+  bool dayOfWeekMatches(DateTime time) =>
+      _fields.daysOfWeek.contains(time.weekday % 7);
 
   /// `next` calculates the next [DateTime]
   /// the expression is scheduled for, relative to
