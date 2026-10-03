@@ -345,6 +345,25 @@ void main() {
         // 2021-11-15 is a Monday, not the 13th -> matches neither.
         expect(cron.matches(DateTime.parse('2021-11-15 00:00:00')), isFalse);
       });
+
+      // https://github.com/justintout/cronparse/issues/14
+      test("#14: nicknames agree with their crontab(5) expansions", () {
+        final current = DateTime.parse('2021-07-11 13:00:01');
+        const expansions = {
+          '@yearly': '0 0 1 1 *',
+          '@annually': '0 0 1 1 *',
+          '@monthly': '0 0 1 * *',
+          '@weekly': '0 0 * * 0',
+          '@daily': '0 0 * * *',
+          '@midnight': '0 0 * * *',
+          '@hourly': '0 * * * *',
+        };
+        expansions.forEach((nickname, expr) {
+          expect(Cron(nickname).nextRelativeTo(current),
+              Cron(expr).nextRelativeTo(current),
+              reason: nickname);
+        });
+      });
     });
   });
 }
