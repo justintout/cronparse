@@ -4,11 +4,11 @@ import './validators.dart';
 /// calculate [DateTime]s and [Duration]s from a given cron expression.
 class Cron {
   Cron(this.expr) {
-    if (!isValid(expr)) {
-      throw ArgumentError('invalid cron expression: "$expr"');
-    }
     if (expr == "@reboot") {
       throw ArgumentError('nickname expression "@reboot" is not supported');
+    }
+    if (!isValid(expr)) {
+      throw ArgumentError('invalid cron expression: "$expr"');
     }
 
     if (expr.startsWith("@")) {
