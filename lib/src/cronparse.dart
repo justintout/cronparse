@@ -79,6 +79,26 @@ class Cron {
         .replaceAll('fri', '5')
         .replaceAll('sat', '6')
         .replaceAll('sun', '7');
+
+    // With day-of-week unrestricted, day-of-month alone selects days, and it
+    // can name a day that never occurs in the selected months (Feb 30). The
+    // minute-by-minute search would then never terminate.
+    if (_dayOfWeekField == '*' && !_hasPossibleDay()) {
+      throw ArgumentError(
+          'day of month never occurs in the selected months: "$expr"');
+    }
+  }
+
+  bool _hasPossibleDay() {
+    for (var month = 1; month <= 12; month++) {
+      if (!_fieldMatches(_monthField, month)) continue;
+      // 2000 is a leap year, so February counts its 29th.
+      final days = DateTime(2000, month + 1, 0).day;
+      for (var day = 1; day <= days; day++) {
+        if (_fieldMatches(_dayOfMonthField, day)) return true;
+      }
+    }
+    return false;
   }
 
   final String expr;
