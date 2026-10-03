@@ -1,3 +1,4 @@
+import './fields.dart';
 import './validators.dart';
 
 /// [Cron] is an object exposing various methods to
@@ -41,64 +42,12 @@ class Cron {
       _parsedExpr = expr;
     }
 
-    final field = _parsedExpr.split(" ");
-    assert(field.length == 5);
-
-    _minuteField =
-        field[0].contains("/") ? field[0].replaceFirst("*", "0-59") : field[0];
-    _hourField =
-        field[1].contains("/") ? field[1].replaceFirst("*", "0-23") : field[1];
-    _dayOfMonthField =
-        field[2].contains("/") ? field[2].replaceFirst("*", "1-31") : field[2];
-
-    final monthField =
-        field[3].contains("/") ? field[3].replaceFirst("*", "1-12") : field[3];
-    _monthField = monthField
-        .toLowerCase()
-        .replaceAll('jan', '1')
-        .replaceAll('feb', '2')
-        .replaceAll('mar', '3')
-        .replaceAll('apr', '4')
-        .replaceAll('may', '5')
-        .replaceAll('jun', '6')
-        .replaceAll('jul', '7')
-        .replaceAll('aug', '8')
-        .replaceAll('sep', '9')
-        .replaceAll('oct', '10')
-        .replaceAll('nov', '11')
-        .replaceAll('dec', '12');
-
-    final dayOfWeekField =
-        field[4].contains("/") ? field[4].replaceFirst("*", "0-7") : field[4];
-    _dayOfWeekField = dayOfWeekField
-        .toLowerCase()
-        .replaceAll('mon', '1')
-        .replaceAll('tue', '2')
-        .replaceAll('wed', '3')
-        .replaceAll('thu', '4')
-        .replaceAll('fri', '5')
-        .replaceAll('sat', '6')
-        .replaceAll('sun', '7');
-
-    // With day-of-week unrestricted, day-of-month alone selects days, and it
-    // can name a day that never occurs in the selected months (Feb 30). The
-    // minute-by-minute search would then never terminate.
-    if (_dayOfWeekField == '*' && !_hasPossibleDay()) {
-      throw ArgumentError(
-          'day of month never occurs in the selected months: "$expr"');
-    }
-  }
-
-  bool _hasPossibleDay() {
-    for (var month = 1; month <= 12; month++) {
-      if (!_fieldMatches(_monthField, month)) continue;
-      // 2000 is a leap year, so February counts its 29th.
-      final days = DateTime(2000, month + 1, 0).day;
-      for (var day = 1; day <= days; day++) {
-        if (_fieldMatches(_dayOfMonthField, day)) return true;
-      }
-    }
-    return false;
+    final field = normalizeFields(_parsedExpr.split(" "));
+    _minuteField = field[0];
+    _hourField = field[1];
+    _dayOfMonthField = field[2];
+    _monthField = field[3];
+    _dayOfWeekField = field[4];
   }
 
   final String expr;
@@ -128,25 +77,25 @@ class Cron {
   /// `minuteMatches` returns true if the minute field of the expression
   /// matches the minute of the given time
   bool minuteMatches(DateTime time) {
-    return _fieldMatches(_minuteField, time.minute);
+    return fieldMatches(_minuteField, time.minute);
   }
 
   /// `hourMatches` returns true if the hour field of the expression
   /// matches the hour of the given time
   bool hourMatches(DateTime time) {
-    return _fieldMatches(_hourField, time.hour);
+    return fieldMatches(_hourField, time.hour);
   }
 
   /// `dayOfMonthMatches` returns true if the day of month field of the
   /// expression matches the day of month of the given time
   bool dayOfMonthMatches(DateTime time) {
-    return _fieldMatches(_dayOfMonthField, time.day);
+    return fieldMatches(_dayOfMonthField, time.day);
   }
 
   /// `monthMatches` returns true if the month field of the expression
   /// matches the month of the given time
   bool monthMatches(DateTime time) {
-    return _fieldMatches(_monthField, time.month);
+    return fieldMatches(_monthField, time.month);
   }
 
   /// `dayOfWeekMatches` returns true if the day of week field of the expression
@@ -155,40 +104,7 @@ class Cron {
   /// Both 0 and 7 represent Sunday. [DateTime.weekday] uses 7 for Sunday, so
   /// a cron value of 0 is treated as matching a weekday of 7.
   bool dayOfWeekMatches(DateTime time) {
-    return _fieldMatches(_dayOfWeekField, time.weekday, sundayAlias: true);
-  }
-
-  /// `_fieldMatches` evaluates a single cron field against an integer [value].
-  ///
-  /// It handles the shared grammar for every field: asterisk, skips
-  /// (`*/n`, `a-b/n`), exact values, ranges (`a-b`), and comma-separated sets
-  /// of any of those. When [sundayAlias] is set (day-of-week), a field value of
-  /// 0 also matches a [value] of 7 so that both 0 and 7 mean Sunday.
-  bool _fieldMatches(String field, int value, {bool sundayAlias = false}) {
-    if (field == '*') return true;
-
-    bool hits(int i) => i == value || (sundayAlias && i == 0 && value == 7);
-
-    for (final part in field.split(',')) {
-      if (part.contains('/')) {
-        final s = part.split('/');
-        final skips = int.parse(s[1]);
-        final bounds = s[0].split('-').map(int.parse).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i += skips) {
-          if (hits(i)) return true;
-        }
-        continue;
-      }
-      if (part.contains('-')) {
-        final bounds = part.split('-').map(int.parse).toList();
-        for (var i = bounds[0]; i <= bounds[1]; i++) {
-          if (hits(i)) return true;
-        }
-        continue;
-      }
-      if (hits(int.parse(part))) return true;
-    }
-    return false;
+    return fieldMatches(_dayOfWeekField, time.weekday, sundayAlias: true);
   }
 
   /// `next` calculates the next [DateTime]

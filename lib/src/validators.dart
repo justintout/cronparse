@@ -1,3 +1,5 @@
+import './fields.dart';
+
 /// `isValid` returns true if the given string is
 /// a valid cron expression
 // TODO: support Jenkins "H"?
@@ -12,11 +14,47 @@ bool isValid(String expr) {
     if (part.contains("/") && part.contains(",")) return false;
   }
 
-  return _minuteValid(parts[0]) &&
+  if (!(_minuteValid(parts[0]) &&
       _hourValid(parts[1]) &&
       _dayOfMonthValid(parts[2]) &&
       _monthValid(parts[3]) &&
-      _dayOfWeekValid(parts[4]);
+      _dayOfWeekValid(parts[4]))) {
+    return false;
+  }
+
+  final fields = normalizeFields(parts);
+  return fields.every(_rangesAndStepsValid) && _hasPossibleDay(fields);
+}
+
+// A reversed range or a zero step selects no values, so the expression could
+// never match and the search in [Cron.nextRelativeTo] would never end.
+bool _rangesAndStepsValid(String field) {
+  for (final part in field.split(',')) {
+    final s = part.split('/');
+    if (s.length == 2 && int.parse(s[1]) < 1) return false;
+    final bounds = s[0].split('-');
+    if (bounds.length == 2 && int.parse(bounds[0]) > int.parse(bounds[1])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// With day-of-week unrestricted, day-of-month alone selects days, and it can
+// name a day that never occurs in the selected months (Feb 30). When
+// day-of-week is restricted, a time matches on either field, so some day
+// always matches.
+bool _hasPossibleDay(List<String> fields) {
+  if (fields[4] != '*') return true;
+  for (var month = 1; month <= 12; month++) {
+    if (!fieldMatches(fields[3], month)) continue;
+    // 2000 is a leap year, so February counts its 29th.
+    final days = DateTime(2000, month + 1, 0).day;
+    for (var day = 1; day <= days; day++) {
+      if (fieldMatches(fields[2], day)) return true;
+    }
+  }
+  return false;
 }
 
 bool _nicknameValid(String expr) {

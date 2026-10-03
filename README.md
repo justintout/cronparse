@@ -3,7 +3,7 @@
 
 Parse Unix cron expressions and calculate things like:
 
-- whether the expression is valid, as a `bool`
+- whether the expression is valid, as a `bool`. an expression that can never match, such as `0 0 30 2 *` or the reversed range `30-10 * * * *`, is invalid
 - the next time the expression will run, as a `DateTime`
 - the last time the expression would have run, as a `DateTime`
 - the duration until the next time the expression will run, as a `Duration`
