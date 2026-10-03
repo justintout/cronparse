@@ -132,6 +132,16 @@ const List<List<Object>> regexTests = [
   ['* * * * AAAAAA', false],
   ['* * * * JUS', false],
   ['* * * * tin', false],
+  // fields that select no values, or days that never occur
+  ['30-10 * * * *', false],
+  ['* * * * */0', false],
+  ['*/0 * * * *', false],
+  ['* * * 5-3 *', false],
+  ['* * * * sun-sat', false],
+  ['0 0 30 2 *', false],
+  ['0 0 31 apr *', false],
+  ['0 0 29 2 *', true],
+  ['0 0 30 2 mon', true],
   // tests for nicknames, validating `_nicknameValid`
   ['@reboot', false],
   ['@yearly', true],
