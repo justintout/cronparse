@@ -112,12 +112,13 @@ class Cron {
   /// search steps backward one minute at a time, so a rare schedule can take
   /// up to about a second.
   DateTime previousRelativeTo(DateTime time) {
-    // round the given time to the previous exact minute to start the search
-    time = time.subtract(Duration(minutes: 1) +
-        Duration(
-            seconds: time.second,
-            milliseconds: time.millisecond,
-            microseconds: time.microsecond));
+    // Start from the whole minute at or before time. A time already on a whole
+    // minute is excluded, so start one minute earlier.
+    final minute = time.subtract(Duration(
+        seconds: time.second,
+        milliseconds: time.millisecond,
+        microseconds: time.microsecond));
+    time = minute == time ? minute.subtract(Duration(minutes: 1)) : minute;
     while (!matches(time)) {
       time = time.subtract(Duration(minutes: 1));
     }
