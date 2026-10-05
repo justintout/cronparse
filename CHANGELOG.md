@@ -1,3 +1,10 @@
+## [0.3.1] - 2026-10-05
+* Fix `previousRelativeTo`, `previous`, `sincePreviousRelativeTo` and
+  `sincePrevious`, which skipped a match earlier in the same minute.
+  `*/15 * * * *` at 16:00:30 now returns 16:00 instead of 15:45.
+* Document the whole public API, including what the `Cron` constructor
+  accepts and when it throws.
+
 ## [0.3.0] - 2026-10-05
 * **Breaking:** `isValid` rejects expressions that can never match, and `Cron`
   throws an `ArgumentError` for them. These are reversed ranges (`30-10`), zero
