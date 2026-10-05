@@ -1,8 +1,27 @@
 import './fields.dart';
+import './validators.dart';
 
-/// [Cron] is an object exposing various methods to
-/// calculate [DateTime]s and [Duration]s from a given cron expression.
+/// A parsed cron expression that finds the times it is scheduled for.
+///
+/// ```dart
+/// final cron = Cron('0 22 * * MON-FRI');
+/// final time = DateTime.parse('2019-11-22 16:00:00'); // a Friday
+/// cron.nextRelativeTo(time); // 2019-11-22 22:00:00.000
+/// cron.untilNextRelativeTo(time); // 6:00:00.000000
+/// ```
+///
+/// Expressions follow Vixie cron, the `cron` in most Linux distributions.
+/// See `crontab(5)` for the grammar. Times are compared using the fields of
+/// the [DateTime] given, so a local time is matched in local time and a UTC
+/// time in UTC.
 class Cron {
+  /// Parses [expr], a five-field cron expression or a nickname such as
+  /// `@daily`.
+  ///
+  /// Throws an [ArgumentError] if [expr] is not a valid expression, if it can
+  /// never match a real date (such as `0 0 30 2 *`), or if it is `@reboot`,
+  /// which names an event rather than a time. [isValid] reports the same
+  /// errors without throwing.
   Cron(this.expr) {
     if (expr == "@reboot") {
       throw ArgumentError('nickname expression "@reboot" is not supported');
@@ -14,10 +33,15 @@ class Cron {
     _fields = fields;
   }
 
+  /// The expression as passed to the constructor.
   final String expr;
   late final CronFields _fields;
 
-  /// `matches` returns true if the full expression matches the given time;
+  /// Whether [time] falls on a minute the expression is scheduled for.
+  ///
+  /// Seconds and smaller units of [time] are ignored. As in cron, when both
+  /// day fields are restricted (neither starts with `*`), [time] matches if
+  /// either day field matches. Otherwise both must match.
   bool matches(DateTime time) {
     if (!minuteMatches(time) || !hourMatches(time) || !monthMatches(time)) {
       return false;
@@ -31,44 +55,37 @@ class Cron {
     return dayOfMonthMatches(time) || dayOfWeekMatches(time);
   }
 
-  /// `minuteMatches` returns true if the minute field of the expression
-  /// matches the minute of the given time
+  /// Whether the minute field selects the minute of [time].
   bool minuteMatches(DateTime time) => _fields.minutes.contains(time.minute);
 
-  /// `hourMatches` returns true if the hour field of the expression
-  /// matches the hour of the given time
+  /// Whether the hour field selects the hour of [time].
   bool hourMatches(DateTime time) => _fields.hours.contains(time.hour);
 
-  /// `dayOfMonthMatches` returns true if the day of month field of the
-  /// expression matches the day of month of the given time
+  /// Whether the day-of-month field selects the day of [time].
   bool dayOfMonthMatches(DateTime time) =>
       _fields.daysOfMonth.contains(time.day);
 
-  /// `monthMatches` returns true if the month field of the expression
-  /// matches the month of the given time
+  /// Whether the month field selects the month of [time].
   bool monthMatches(DateTime time) => _fields.months.contains(time.month);
 
-  /// `dayOfWeekMatches` returns true if the day of week field of the expression
-  /// matches the day of week of the given time.
+  /// Whether the day-of-week field selects the weekday of [time].
   ///
-  /// Both 0 and 7 represent Sunday. [DateTime.weekday] uses 7 for Sunday, so
-  /// it is reduced modulo 7 to match the parsed field.
+  /// In the expression, both 0 and 7 mean Sunday.
   bool dayOfWeekMatches(DateTime time) =>
       _fields.daysOfWeek.contains(time.weekday % 7);
 
-  /// `next` calculates the next [DateTime]
-  /// the expression is scheduled for, relative to
-  /// the current time
+  /// The next time the expression is scheduled for after now.
+  ///
+  /// See [nextRelativeTo].
   DateTime next() {
     return nextRelativeTo(DateTime.now());
   }
 
-  /// `nextRelativeTo` calculates the next [DateTime]
-  /// the expression is scheduled for, relative to
-  /// the given time.
+  /// The first time the expression is scheduled for after [time].
   ///
-  /// `nextRelativeTo` uses a naive strategy to find the next time by
-  /// searching forward each minute until a match is found.
+  /// The result is always a whole minute and is never [time] itself. The
+  /// search steps forward one minute at a time, so a rare schedule such as
+  /// `0 0 29 2 *` (February 29th) can take up to about a second.
   DateTime nextRelativeTo(DateTime time) {
     // round the given time to the next exact minute to start the search
     time = time.add(Duration(minutes: 1) -
@@ -82,19 +99,18 @@ class Cron {
     return time;
   }
 
-  /// `previous` calculates the last [DateTime]
-  /// the expression would have been scheduled for,
-  /// relative to the current time
+  /// The last time the expression was scheduled for before now.
+  ///
+  /// See [previousRelativeTo].
   DateTime previous() {
     return previousRelativeTo(DateTime.now());
   }
 
-  /// `previousRelativeTo` calculates the last [DateTime]
-  /// the expression would have been scheduled for,
-  /// relative to the given time
+  /// The last time the expression was scheduled for before [time].
   ///
-  /// `previousRelativeTo` uses a naive strategy to find the previous time by
-  /// searching backward each minute until a match is found.
+  /// The result is always a whole minute and is never [time] itself. The
+  /// search steps backward one minute at a time, so a rare schedule can take
+  /// up to about a second.
   DateTime previousRelativeTo(DateTime time) {
     // round the given time to the previous exact minute to start the search
     time = time.subtract(Duration(minutes: 1) +
@@ -108,32 +124,23 @@ class Cron {
     return time;
   }
 
-  /// `untilNext` returns the [Duration] until
-  /// the expression's next scheduled time, relative
-  /// to the current time
+  /// The time from now until [next]. Always positive.
   Duration untilNext() {
     return untilNextRelativeTo(DateTime.now());
   }
 
-  /// `untilNextRelativeTo` returns the [Duration] until
-  /// the expression's next scheduled time, relative
-  /// to the given time
+  /// The time from [time] until [nextRelativeTo] of [time]. Always positive.
   Duration untilNextRelativeTo(DateTime time) {
     return nextRelativeTo(time).difference(time);
   }
 
-  /// `sincePrevious` calculates the [Duration]
-  /// since the previous time the expression
-  /// would have been scheduled for, relative to
-  /// the current time
+  /// The time from now back to [previous]. Always negative.
   Duration sincePrevious() {
     return sincePreviousRelativeTo(DateTime.now());
   }
 
-  /// `sincePreviousRelativeTo` calculates the [Duration]
-  /// since the previous time the expression
-  /// would have been scheduled for, relative to
-  /// the given time
+  /// The time from [time] back to [previousRelativeTo] of [time]. Always
+  /// negative, matching [DateTime.difference].
   Duration sincePreviousRelativeTo(DateTime time) {
     return previousRelativeTo(time).difference(time);
   }
