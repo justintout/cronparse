@@ -1,4 +1,8 @@
 # cronparse
+
+[![pub package](https://img.shields.io/pub/v/cronparse.svg)](https://pub.dev/packages/cronparse)
+[![docs](https://img.shields.io/badge/docs-pub.dev-blue)](https://pub.dev/documentation/cronparse/latest/)
+
 > Parse and calculate different times related to Unix cron expressions
 
 Parse Unix cron expressions and calculate things like:
